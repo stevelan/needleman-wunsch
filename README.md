@@ -1,5 +1,6 @@
 Simple go script with single source and mod file in root directory
-##Getting started
+
+## Getting started
 
 Install required tools with \`make win-tools`
 
