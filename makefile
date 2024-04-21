@@ -1,6 +1,6 @@
 .DEFAULT_GOAL=build
 
-.PHONY: all clean fmt lint vet build ls_bins ls_srcs imports
+.PHONY: all clean fmt lint vet build ls_bins ls_srcs imports run
 
 SRCS := $(wildcard *.go)
 BASH_BINS := $(SRCS:%.go=%)
@@ -11,6 +11,11 @@ all: fmt imports vet lint build
 build: vet lint
 	@echo "Go building (${SRCS})"
 	go build ${SRCS}
+	@echo
+
+run: build
+	@echo "Built needleman-wunsch"
+	./needleman-wunsch
 	@echo
 
 vet: fmt
