@@ -64,16 +64,17 @@ func main() {
 }
 
 /*
-Implementation of Needleman-Wunsch as documented :
-
-	https://bio.libretexts.org/Bookshelves/Computational_Biology/Book%3A_Computational_Biology_-_Genomes_Networks_and_Evolution_(Kellis_et_al.)/02%3A_Sequence_Alignment_and_Dynamic_Programming/2.05%3A_The_Needleman-Wunsch_AlgorithmInitialization:
+Implementation of Needleman-Wunsch
 
 Initialization:
 
 	F(i,0)=F(i−1,0)−d
 	F(0,j)=F(0,j−1)−d
 
-Iteration:
+	Iteration:F(i,j)=max{
+		F(i−1,j)−d insert gap in S
+		F(i,j−1)−d insert gap in T
+		F(i−1,j−1)+s(xi,yj) match or mutation
 */
 func Align(seqA string, seqB string, score Score) Alignment {
 	defer timeTrack(time.Now(), "align")
@@ -104,11 +105,6 @@ Initialization:
 
 	F(i,0)=F(i−1,0)−d
 	F(0,j)=F(0,j−1)−d
-
-	Iteration:F(i,j)=max{
-		F(i−1,j)−d insert gap in S
-		F(i,j−1)−d insert gap in T
-		F(i−1,j−1)+s(xi,yj) match or mutation
 
 i.e.
 
