@@ -1,11 +1,15 @@
 package main
 
 import (
-	"4d63.com/strrev" // function for string reversing
 	"log"
 	"time"
 )
 
+/*
+Score datatype capturing a scoring schema for the needleman wunsch algorithm.
+
+Gap and mismatch scores should be negative, and match scores should be non-negative
+*/
 type Score struct {
 	match       int
 	mismatch    int
@@ -13,33 +17,40 @@ type Score struct {
 	continueGap int
 }
 
-type Direction int
+type direction int
 
 const (
-	Diag Direction = iota
-	Up
-	Left
+	diag direction = iota
+	up
+	left
 )
 
 const (
-	MatchChar    = "|"
-	MismatchChar = "."
-	GapChar      = "-"
+	matchChar    = "|"
+	mismatchChar = "."
+	gapChar      = "-"
 )
 
-type StepState struct {
+type stepState struct {
 	Score      int
-	Comparison Direction // one of Diag, Up, Left
+	Comparison direction // one of diag, up, left
 }
 
+/*
+Alignment - result of an align operation between two sequences, calculates
+the match score and path through the matrix and produces a comparison string.
+*/
 type Alignment struct {
 	Sequence1  string
 	Sequence2  string
 	Comparison string
 	Score      int
-	Path       []StepState
+	Path       []stepState
 }
 
+/*
+NewScore Create a default scoring scheme
+*/
 func NewScore() Score {
 	return Score{1, -1, -2, -2}
 }
@@ -65,7 +76,7 @@ func main() {
 }
 
 /*
-Implementation of Needleman-Wunsch
+Align Implementation of Needleman-Wunsch
 
 Initialization:
 
@@ -81,7 +92,7 @@ func Align(seqA string, seqB string, score Score) Alignment {
 	defer timeTrack(time.Now(), "align")
 	m := len(seqA)
 	n := len(seqB)
-	printer := NoopPrinter()
+	printer := noopPrinter()
 
 	matrix := initializeMatrix(m, n, score)
 	printer.printMatrix(matrix)
@@ -121,29 +132,29 @@ i.e.
 |-16 |  0 |  0 |  0 |  0 |  0 |
 ------------------------------
 */
-func initializeMatrix(rows int, cols int, score Score) [][]StepState {
-	matrix := make([][]StepState, rows+1)
+func initializeMatrix(rows int, cols int, score Score) [][]stepState {
+	matrix := make([][]stepState, rows+1)
 
 	gapVal := score.continueGap
 	for i := range matrix {
 		// initialise matrix of size cols
-		matrix[i] = make([]StepState, cols+1)
+		matrix[i] = make([]stepState, cols+1)
 		// initialise first column with continue gap value
-		matrix[i][0] = StepState{gapVal, Up}
+		matrix[i][0] = stepState{gapVal, up}
 		gapVal += score.continueGap
 	}
 
 	// initialise first row with continue gap value
 	gapVal = score.continueGap
 	for i := range matrix[0] {
-		matrix[0][i] = StepState{gapVal, Left}
+		matrix[0][i] = stepState{gapVal, left}
 		gapVal += score.continueGap
 	}
 
 	// special values
-	matrix[0][0] = StepState{0, Diag}
-	matrix[0][1] = StepState{score.openGap, Left}
-	matrix[1][0] = StepState{score.openGap, Up}
+	matrix[0][0] = stepState{0, diag}
+	matrix[0][1] = stepState{score.openGap, left}
+	matrix[1][0] = stepState{score.openGap, up}
 
 	return matrix
 }
@@ -170,7 +181,7 @@ i.e.
 
 Record the cell path, and the direction that was taken in the matrix
 */
-func iterateMatrix(matrix [][]StepState, seqA string, seqB string, score Score) {
+func iterateMatrix(matrix [][]stepState, seqA string, seqB string, score Score) {
 	for i := 1; i < len(matrix); i++ {
 		for j := 1; j < len(matrix[i]); j++ {
 			matrix[i][j] = evaluateCell(matrix, i, j, seqA[i-1], seqB[j-1], score)
@@ -178,24 +189,24 @@ func iterateMatrix(matrix [][]StepState, seqA string, seqB string, score Score) 
 	}
 }
 
-func evaluateCell(matrix [][]StepState, i int, j int, a uint8, b uint8, score Score) StepState {
+func evaluateCell(matrix [][]stepState, i int, j int, a uint8, b uint8, score Score) stepState {
 
 	// affine gap score calculation
 	upStateStep := matrix[i-1][j]
 	upGapScore := score.openGap
-	if upStateStep.Comparison == Up { // if the up cell is up, then this is a continuing gap
+	if upStateStep.Comparison == up { // if the up cell is up, then this is a continuing gap
 		upGapScore = score.continueGap
 	}
 
 	leftStateStep := matrix[i][j-1]
 	leftGapScore := score.openGap
-	if leftStateStep.Comparison == Left { // if the left cell is left, then this is an opening gap
+	if leftStateStep.Comparison == left { // if the left cell is left, then this is an opening gap
 		leftGapScore = score.continueGap
 	}
 
-	two_by_two_matrix := getCell(matrix, i, j)
-	up := two_by_two_matrix[0][1] + upGapScore
-	left := two_by_two_matrix[1][0] + leftGapScore
+	twoByTwoMatrix := getCell(matrix, i, j)
+	up := twoByTwoMatrix[0][1] + upGapScore
+	left := twoByTwoMatrix[1][0] + leftGapScore
 	var diagScore int
 	if a == b {
 		diagScore = score.match
@@ -203,31 +214,31 @@ func evaluateCell(matrix [][]StepState, i int, j int, a uint8, b uint8, score Sc
 		diagScore = score.mismatch
 	}
 
-	diag := two_by_two_matrix[0][0] + diagScore
+	diag := twoByTwoMatrix[0][0] + diagScore
 
 	return calcMax(up, left, diag)
 }
 
-func getCell(matrix [][]StepState, i, j int) [][]int {
+func getCell(matrix [][]stepState, i, j int) [][]int {
 	return [][]int{
 		{matrix[i-1][j-1].Score, matrix[i-1][j].Score},
 		{matrix[i][j-1].Score, matrix[i][j].Score},
 	}
 }
 
-func calcMax(up, left, diag int) StepState {
-	maximum := up // Assume up is the maximum initially
-	comparison := Up
+func calcMax(upScore, leftScore, diagScore int) stepState {
+	maximum := upScore // Assume up is the maximum initially
+	comparison := up
 	// Compare left and diag with the current max
-	if left > maximum {
-		maximum = left
-		comparison = Left
+	if leftScore > maximum {
+		maximum = leftScore
+		comparison = left
 	}
-	if diag >= maximum { // if diagonal is equal max, prefer it
-		maximum = diag
-		comparison = Diag
+	if diagScore >= maximum { // if diagonal is equal max, prefer it
+		maximum = diagScore
+		comparison = diag
 	}
-	return StepState{maximum, comparison}
+	return stepState{maximum, comparison}
 }
 
 /*
@@ -246,12 +257,12 @@ Score -1
 
 returns an alignment object, with the 3 strings, the max score and the directional path from bottom right to top left
 */
-func walkPath(matrix [][]StepState, m int, n int, a string, b string) Alignment {
+func walkPath(matrix [][]stepState, m int, n int, a string, b string) Alignment {
 	result := make([]string, 3)
 	for i := 0; i < 3; i++ {
 		result[i] = ""
 	}
-	var path []StepState
+	var path []stepState
 
 	j := n
 	i := m
@@ -261,17 +272,17 @@ func walkPath(matrix [][]StepState, m int, n int, a string, b string) Alignment 
 		path = append(path, state)
 
 		//fmt.Printf("Step state %d - %d\n", state.Score, state.Comparison)
-		if state.Comparison == Up {
-			result[0] += GapChar // gap character
-			result[1] += GapChar
+		if state.Comparison == up {
+			result[0] += gapChar // gap character
+			result[1] += gapChar
 			result[2] += string(a[i-1])
 			i--
-		} else if state.Comparison == Left {
-			result[2] += GapChar
-			result[1] += GapChar
+		} else if state.Comparison == left {
+			result[2] += gapChar
+			result[1] += gapChar
 			result[0] += string(b[j-1])
 			j--
-		} else if state.Comparison == Diag {
+		} else if state.Comparison == diag {
 			result[0] += string(a[i-1])
 			result[2] += string(b[j-1])
 			i--
@@ -279,14 +290,27 @@ func walkPath(matrix [][]StepState, m int, n int, a string, b string) Alignment 
 
 			// match or mismatch
 			if a[i] == b[j] {
-				result[1] += MatchChar
+				result[1] += matchChar
 			} else {
-				result[1] += MismatchChar
+				result[1] += mismatchChar
 			}
 
 		}
 	}
 
-	vals := Alignment{strrev.Reverse(result[0]), strrev.Reverse(result[2]), strrev.Reverse(result[1]), matrix[m][n].Score, path}
+	vals := Alignment{reverseString(result[0]), reverseString(result[2]), reverseString(result[1]), matrix[m][n].Score, path}
 	return vals
+}
+
+func reverseString(s string) string {
+	// Convert the string to a slice of runes to handle multi-byte characters correctly
+	runes := []rune(s)
+	// Get the length of the rune slice
+	n := len(runes)
+	// Reverse the rune slice in place
+	for i := 0; i < n/2; i++ {
+		runes[i], runes[n-1-i] = runes[n-1-i], runes[i]
+	}
+	// Convert the reversed rune slice back to a string
+	return string(runes)
 }

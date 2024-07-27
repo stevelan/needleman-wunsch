@@ -2,20 +2,23 @@ package main
 
 import "fmt"
 
+/*
+Printer - interface for printing common objects when running needleman_wunsch
+*/
 type Printer interface {
 	printAlignment(alignment Alignment)
 
-	printMatrix(matrix [][]StepState)
+	printMatrix(matrix [][]stepState)
 
-	printScore(matrix [][]StepState)
+	printScore(matrix [][]stepState)
 
 	printSequences(seqA, seqB string)
 }
 
-type SimplePrinter struct {
+type simplePrinter struct {
 }
 
-func (p SimplePrinter) printMatrix(matrix [][]StepState) {
+func (p simplePrinter) printMatrix(matrix [][]stepState) {
 
 	if len(matrix) > 20 {
 		fmt.Println("Matrix too large, skipping printing matrix")
@@ -32,41 +35,41 @@ func (p SimplePrinter) printMatrix(matrix [][]StepState) {
 
 }
 
-func (p SimplePrinter) printAlignment(alignment Alignment) {
+func (p simplePrinter) printAlignment(alignment Alignment) {
 	fmt.Printf("\n%s\n%s\n%s\n", alignment.Sequence1, alignment.Comparison, alignment.Sequence2)
 }
 
-func (p SimplePrinter) printScore(matrix [][]StepState) {
+func (p simplePrinter) printScore(matrix [][]stepState) {
 	fmt.Printf("Max score : %d\n", matrix[len(matrix)-1][len(matrix[0])-1])
 }
 
-func (p SimplePrinter) printSequences(seqA, seqB string) {
+func (p simplePrinter) printSequences(seqA, seqB string) {
 	fmt.Printf("\nSequence 1: %s\nSequence 2: %s\n", seqA, seqB)
 }
 
-func NewPrinter() Printer {
-	return SimplePrinter{}
+func newPrinter() Printer {
+	return simplePrinter{}
 }
 
-func NoopPrinter() Printer {
-	return NullPrinter{}
+func noopPrinter() Printer {
+	return nullPrinter{}
 }
 
-type NullPrinter struct {
+type nullPrinter struct {
 }
 
-func (p NullPrinter) printAlignment(alignment Alignment) {
-
-}
-
-func (p NullPrinter) printMatrix(matrix [][]StepState) {
+func (p nullPrinter) printAlignment(alignment Alignment) {
 
 }
 
-func (p NullPrinter) printScore(matrix [][]StepState) {
+func (p nullPrinter) printMatrix(matrix [][]stepState) {
 
 }
 
-func (p NullPrinter) printSequences(seqA, seqB string) {
+func (p nullPrinter) printScore(matrix [][]stepState) {
+
+}
+
+func (p nullPrinter) printSequences(seqA, seqB string) {
 
 }
