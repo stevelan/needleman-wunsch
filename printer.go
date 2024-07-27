@@ -8,12 +8,19 @@ type Printer interface {
 	printMatrix(matrix [][]StepState)
 
 	printScore(matrix [][]StepState)
+
+	printSequences(seqA, seqB string)
 }
 
 type SimplePrinter struct {
 }
 
 func (p SimplePrinter) printMatrix(matrix [][]StepState) {
+
+	if len(matrix) > 20 {
+		fmt.Println("Matrix too large, skipping printing matrix")
+		return
+	}
 	fmt.Print("------------------------------\n")
 	for _, row := range matrix {
 		for _, col := range row {
@@ -33,6 +40,33 @@ func (p SimplePrinter) printScore(matrix [][]StepState) {
 	fmt.Printf("Max score : %d\n", matrix[len(matrix)-1][len(matrix[0])-1])
 }
 
+func (p SimplePrinter) printSequences(seqA, seqB string) {
+	fmt.Printf("\nSequence 1: %s\nSequence 2: %s\n", seqA, seqB)
+}
+
 func NewPrinter() Printer {
 	return SimplePrinter{}
+}
+
+func NoopPrinter() Printer {
+	return NullPrinter{}
+}
+
+type NullPrinter struct {
+}
+
+func (p NullPrinter) printAlignment(alignment Alignment) {
+
+}
+
+func (p NullPrinter) printMatrix(matrix [][]StepState) {
+
+}
+
+func (p NullPrinter) printScore(matrix [][]StepState) {
+
+}
+
+func (p NullPrinter) printSequences(seqA, seqB string) {
+
 }

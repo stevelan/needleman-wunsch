@@ -2,7 +2,6 @@ package main
 
 import (
 	"4d63.com/strrev" // function for string reversing
-	"fmt"
 	"log"
 	"time"
 )
@@ -14,8 +13,10 @@ type Score struct {
 	continueGap int
 }
 
+type Direction int
+
 const (
-	Diag = iota
+	Diag Direction = iota
 	Up
 	Left
 )
@@ -28,7 +29,7 @@ const (
 
 type StepState struct {
 	Score      int
-	Comparison int // one of Diag, Up, Left
+	Comparison Direction // one of Diag, Up, Left
 }
 
 type Alignment struct {
@@ -80,7 +81,7 @@ func Align(seqA string, seqB string, score Score) Alignment {
 	defer timeTrack(time.Now(), "align")
 	m := len(seqA)
 	n := len(seqB)
-	printer := NewPrinter()
+	printer := NoopPrinter()
 
 	matrix := initializeMatrix(m, n, score)
 	printer.printMatrix(matrix)
@@ -90,7 +91,8 @@ func Align(seqA string, seqB string, score Score) Alignment {
 
 	alignment := walkPath(matrix, m, n, seqA, seqB)
 
-	fmt.Print("\n", seqA, " ", seqB)
+	printer.printSequences(seqA, seqB)
+
 	printer.printAlignment(alignment)
 
 	printer.printScore(matrix)
@@ -254,7 +256,7 @@ func walkPath(matrix [][]StepState, m int, n int, a string, b string) Alignment 
 	j := n
 	i := m
 	for i > 0 || j > 0 {
-		fmt.Print(j, " ", i, " -- ")
+		//fmt.Print(j, " ", i, " -- ")
 		state := matrix[i][j]
 		path = append(path, state)
 
